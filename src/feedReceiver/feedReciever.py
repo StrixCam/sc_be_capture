@@ -1,5 +1,4 @@
 import subprocess
-from typing import Optional
 
 from .. import config
 
@@ -10,7 +9,7 @@ def camera_feed (
     height: int = config.CAMERA_DEFAULT_RESOLUTION[1],
     fps: int = config.CAMERA_DEFAULT_FPS,
     codec: str = config.CAMERA_DEFAULT_CODEC,
-) -> subprocess.Popen:
+) -> subprocess.Popen[bytes]:
     """
     Initializes a camera feed using ffmpeg.
     """

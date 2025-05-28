@@ -1,12 +1,13 @@
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 import subprocess
 
 from typing import Generator
 from .. import config
 
 
-def _read_frame_from_pipe(pipe) -> np.ndarray:
+def _read_frame_from_pipe(pipe: subprocess.Popen[bytes]) -> NDArray[np.uint8]:
     """
     Reads a single frame from the given subprocess pipe.
     Args:
@@ -17,29 +18,31 @@ def _read_frame_from_pipe(pipe) -> np.ndarray:
     
     resolution: tuple[int,int] = config.CAMERA_DEFAULT_RESOLUTION
     width, height = resolution
-    frame_size = width * height * 3 // 2  # YUV420p format
+    frame_size: int = width * height * 3 // 2  # YUV420p format
     
     try:
-      raw_data = pipe.stdout.read(frame_size)
+        if pipe.stdout is None:
+            raise ValueError("Pipe stdout is None")
+        raw_data = pipe.stdout.read(frame_size)
     except Exception as e:
-      print(f"Error reading from pipe: {e}")
-      return None
+        raise RuntimeError(f"Error reading from pipe: {e}")
 
     if not raw_data or len(raw_data) != frame_size:
-        print("⚠️ Incomplete frame received or end of stream.")
-        return None
+        raise ValueError(f"Received incomplete frame data: {len(raw_data)} bytes, expected {frame_size} bytes")
 
-    # Convert raw YUV420p to BGR using OpenCV
-    yuv_frame = np.frombuffer(raw_data, dtype=np.uint8).reshape((height * 3 // 2, width))
-    bgr_frame = cv2.cvtColor(yuv_frame, cv2.COLOR_YUV2BGR_I420)
+    try:
+        yuv_frame = np.frombuffer(raw_data, dtype=np.uint8).reshape((height * 3 // 2, width))
+        bgr_frame: NDArray[np.uint8] = cv2.cvtColor(yuv_frame, cv2.COLOR_YUV2BGR_I420).astype(np.uint8)
+    except Exception as e:
+        raise RuntimeError(f"Error decoding frame: {e}")
 
     return bgr_frame
 
 
 def combine_camera_feeds(
-    process_0: subprocess.Popen,
-    process_1: subprocess.Popen
-) -> Generator[np.ndarray, None, None]:
+    process_0: subprocess.Popen[bytes],
+    process_1: subprocess.Popen[bytes]
+) -> Generator[NDArray[np.uint8], None, None]:
     """
     Combines frames from two camera feeds into a single frame.
     Args:
@@ -54,15 +57,10 @@ def combine_camera_feeds(
           frame0 = _read_frame_from_pipe(process_0)
           frame1 = _read_frame_from_pipe(process_1)
 
-          if frame0 is None or frame1 is None:
-              print("❌ Lost camera feed")
-              break
-
           combined = np.hstack((frame0, frame1))
           yield combined
         except KeyboardInterrupt:
           print("🛑 Stopping feed combination...")
           break
         except Exception as e:
-            print(f"⚠️ Error combining feeds: {e}")
-            break
+            raise RuntimeError(f"Error combining camera feeds: {e}")
