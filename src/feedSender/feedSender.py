@@ -1,8 +1,9 @@
 import socket
-import cv2
 from typing import Generator
-from numpy.typing import NDArray
+
+import cv2
 import numpy as np
+from numpy.typing import NDArray
 
 
 def send_combined_feed(

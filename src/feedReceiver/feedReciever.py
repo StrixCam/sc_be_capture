@@ -24,14 +24,11 @@ def camera_feed (
         '--timeout', '0',
         '--output', '-'
     ]
-    
     print(f"Initializing camera feed for {camera_name} with command: {' '.join(command)}")
-    
     process = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         bufsize=0
     )
-    
     return process
