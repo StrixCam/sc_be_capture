@@ -1,66 +1,35 @@
-import cv2
 import numpy as np
-from numpy.typing import NDArray
-import subprocess
-
 from typing import Generator
-from .. import config
-
-
-def _read_frame_from_pipe(pipe: subprocess.Popen[bytes]) -> NDArray[np.uint8]:
-    """
-    Reads a single frame from the given subprocess pipe.
-    Args:
-        pipe (subprocess.Popen): The subprocess pipe to read from.
-    Returns:
-        np.ndarray: The decoded frame in BGR format, or None if an error occurs.
-    """
-    
-    resolution: tuple[int,int] = config.CAMERA_DEFAULT_RESOLUTION
-    width, height = resolution
-    frame_size: int = width * height * 3 // 2  # YUV420p format
-    
-    try:
-        if pipe.stdout is None:
-            raise ValueError("Pipe stdout is None")
-        raw_data = pipe.stdout.read(frame_size)
-    except Exception as e:
-        raise RuntimeError(f"Error reading from pipe: {e}")
-
-    if not raw_data or len(raw_data) != frame_size:
-        raise ValueError(f"Received incomplete frame data: {len(raw_data)} bytes, expected {frame_size} bytes")
-
-    try:
-        yuv_frame = np.frombuffer(raw_data, dtype=np.uint8).reshape((height * 3 // 2, width))
-        bgr_frame: NDArray[np.uint8] = cv2.cvtColor(yuv_frame, cv2.COLOR_YUV2BGR_I420).astype(np.uint8)
-    except Exception as e:
-        raise RuntimeError(f"Error decoding frame: {e}")
-
-    return bgr_frame
+from numpy.typing import NDArray
+from picamera2 import Picamera2
 
 
 def combine_camera_feeds(
-    process_0: subprocess.Popen[bytes],
-    process_1: subprocess.Popen[bytes]
+    cam0: Picamera2,
+    cam1: Picamera2
 ) -> Generator[NDArray[np.uint8], None, None]:
     """
-    Combines frames from two camera feeds into a single frame.
-    Args:
-        process_0 (subprocess.Popen): The first camera feed process.
-        process_1 (subprocess.Popen): The second camera feed process.
-    Yields:
-        np.ndarray: Combined frames from both camera feeds.
-    """
+    Continuously reads frames from two Picamera2 objects and horizontally stacks them.
 
+    Args:
+        cam0 (Picamera2): Left camera
+        cam1 (Picamera2): Right camera
+
+    Yields:
+        NDArray[np.uint8]: Combined (horizontally stacked) frame
+    """
     while True:
         try:
-          frame0 = _read_frame_from_pipe(process_0)
-          frame1 = _read_frame_from_pipe(process_1)
+            frame0 = cam0.capture_array()
+            frame1 = cam1.capture_array()
 
-          combined = np.hstack((frame0, frame1))
-          yield combined
-        except KeyboardInterrupt:
-          print("🛑 Stopping feed combination...")
-          break
+            if frame0 is None:
+                raise RuntimeError("❌ Failed to read from Left Camera.")
+            if frame1 is None:
+                raise RuntimeError("❌ Failed to read from Right Camera.")
+
+            combined = np.hstack((frame0,frame1,)).astype(np.uint8)
+            yield combined
+
         except Exception as e:
-            raise RuntimeError(f"Error combining camera feeds: {e}")
+            raise RuntimeError(f"❌ Error combining camera feeds: {e}") from e

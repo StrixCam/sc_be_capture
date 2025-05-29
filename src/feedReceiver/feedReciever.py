@@ -1,34 +1,30 @@
-import subprocess
-
+from picamera2 import Picamera2, Preview
+from picamera2.encoders import H264Encoder
+from picamera2.outputs import FileOutput
+import numpy as np
 from .. import config
 
-def camera_feed (
-    camera_name: str,
-    camera_index: int,
-    width: int = config.CAMERA_DEFAULT_RESOLUTION[0],
-    height: int = config.CAMERA_DEFAULT_RESOLUTION[1],
-    fps: int = config.CAMERA_DEFAULT_FPS,
-    codec: str = config.CAMERA_DEFAULT_CODEC,
-) -> subprocess.Popen[bytes]:
+def camera_feed(camera_name: str, camera_id: int) -> Picamera2:
     """
-    Initializes a camera feed using ffmpeg.
+    Initializes and configures a Picamera2 object for the given camera.
+
+    Args:
+        camera_name (str): Descriptive name for logs.
+        camera_id (int): Camera ID (e.g. 0 or 1).
+
+    Returns:
+        Picamera2: The configured Picamera2 instance.
     """
-    command = [
-        'libcamera-vid',
-        '--camera', str(camera_index),
-        '--width', str(width),
-        '--height', str(height),
-        '--framerate', str(fps),
-        '--codec', codec,
-        '--no-preview',
-        '--timeout', '0',
-        '--output', '-'
-    ]
-    print(f"Initializing camera feed for {camera_name} with command: {' '.join(command)}")
-    process = subprocess.Popen(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        bufsize=0
+    print(f"📸 Iniciando cámara {camera_id}: {camera_name}")
+    cam = Picamera2(camera_num=camera_id)
+    cam_config = cam.create_still_configuration(
+        main={"size": config.CAMERA_DEFAULT_RESOLUTION},
+        display="main"
     )
-    return process
+    cam.configure(cam_config)
+    cam.start()
+    frame = cam.capture_array()
+    if frame is None:
+        raise RuntimeError(f"❌ La cámara {camera_id} no está entregando frames.")
+    print(f"✅ Cámara {camera_id} capturada con tamaño: {frame.shape}")
+    return cam

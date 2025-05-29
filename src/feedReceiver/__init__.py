@@ -1,43 +1,37 @@
+from typing import Optional, Tuple
+from picamera2 import Picamera2
+import numpy as np
+import time
+
 from .. import config
 from .feedReciever import camera_feed
 
-
-def run_feed_recieved(return_processes: bool = False):
+def run_feed_recieved(return_processes: bool = False) -> Optional[Tuple[Picamera2, Picamera2]]:
     """
-    Initializes and runs camera feeds using libcamera-vid.
-    If `return_processes` is True, returns the camera feed processes instead of blocking.
+    Captures both camera feeds using Picamera2 directly.
+
     Args:
-        return_processes (bool): If True, returns the camera feed processes.
-    Returns:
-        tuple[subprocess.Popen, subprocess.Popen] or None: Camera feed processes if `return_processes` is True, otherwise None.
-    """
-    camera0 = camera_feed(
-        camera_name=config.CAMERA_0_NAME,
-        camera_index=0,
-        width=config.CAMERA_DEFAULT_RESOLUTION[0],
-        height=config.CAMERA_DEFAULT_RESOLUTION[1],
-        fps=config.CAMERA_DEFAULT_FPS,
-        codec=config.CAMERA_DEFAULT_CODEC
-    )
+        return_processes (bool): If True, returns the Picamera2 objects.
 
-    camera1 = camera_feed(
-        camera_name=config.CAMERA_1_NAME,
-        camera_index=1,
-        width=config.CAMERA_DEFAULT_RESOLUTION[0],
-        height=config.CAMERA_DEFAULT_RESOLUTION[1],
-        fps=config.CAMERA_DEFAULT_FPS,
-        codec=config.CAMERA_DEFAULT_CODEC
-    )
+    Returns:
+        Optional[Tuple[Picamera2, Picamera2]]:
+            Tuple of Picamera2 objects if return_processes is True, otherwise None.
+    """
+    cap0 = camera_feed(camera_name=config.CAMERA_0_NAME, camera_id=config.CAMERA_0_INDEX)
+    cap1 = camera_feed(camera_name=config.CAMERA_1_NAME, camera_id=config.CAMERA_1_INDEX)
 
     if return_processes:
-        return camera0, camera1
+        return cap0, cap1
 
-    # Default behavior: block and wait
     try:
         print("🟢 Camera feeds running. Press Ctrl+C to stop.")
-        camera0.wait()
-        camera1.wait()
+        while True:
+            frame0 = cap0.capture_array()
+            frame1 = cap1.capture_array()
+            if frame0 is None or frame1 is None:
+                raise RuntimeError("❌ One or both cameras failed to deliver frames.")
+            time.sleep(1 / config.CAMERA_DEFAULT_FPS)
     except KeyboardInterrupt:
         print("🛑 Terminating camera feeds...")
-        camera0.terminate()
-        camera1.terminate()
+
+    return None
