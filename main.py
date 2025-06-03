@@ -1,6 +1,10 @@
-from src.feedReceiver import run_feed_recieved
-from src.feedCombiner import run_feed_combiner
-from src.feedSender import run_feed_sender
+"""
+This module provides the entry point for the feed sender, which sends combined frames over TCP.
+"""
+
+from src.feed_receiver import run_feed_recieved
+from src.feed_combiner import run_feed_combiner
+from src.feed_sender import run_feed_sender
 
 
 def main() -> None:

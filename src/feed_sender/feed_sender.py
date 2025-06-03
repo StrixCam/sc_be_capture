@@ -1,7 +1,14 @@
+
+"""
+feed-sender.py
+This module sets up a TCP server to stream combined video frames from two cameras.
+"""
+
 import socket
+from typing import Generator
+
 import cv2
 import numpy as np
-from typing import Generator
 from numpy.typing import NDArray
 
 

@@ -2,9 +2,6 @@
 Module for initializing and configuring camera feeds using Picamera2.
 """
 
-import numpy as np
-from picamera2.encoders import H264Encoder
-from picamera2.outputs import FileOutput
 from picamera2.picamera2 import Picamera2
 
 from .. import config
@@ -28,7 +25,7 @@ def camera_feed(camera_name: str, camera_id: int)  -> Picamera2:
     )
     cam.configure(cam_config)
     cam.start()
-    frame: np.ndarray[np.uint8, np.uint8] = cam.capture_array()
+    frame = cam.capture_array(wait=True)
     if frame is None:
         raise RuntimeError(f"❌ No se pudo capturar la cámara {camera_id}.")
     print(f"✅ Cámara {camera_id} capturada con tamaño: {frame.shape}")

@@ -1,3 +1,7 @@
+"""
+This module provides the entry point for the feed sender, which sends combined frames over TCP.
+"""
+
 from typing import Generator
 
 import cv2
@@ -22,6 +26,7 @@ def combine_camera_feeds(
     Yields:
         NDArray[np.uint8]: Combined (horizontally stacked) frame
     """
+    
     while True:
         try:
             frame0: NDArray[np.uint8] = cam0.capture_array(wait=True)

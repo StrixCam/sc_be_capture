@@ -1,9 +1,13 @@
+"""
+This module provides the entry point for the feed sender, which sends combined frames over TCP.
+"""
+
 from typing import Generator
 import numpy as np
 from numpy.typing import NDArray
-from picamera2 import Picamera2
+from picamera2.picamera2 import Picamera2
 
-from .feedCombiner import combine_camera_feeds
+from .feed_combiner import combine_camera_feeds
 
 
 def run_feed_combiner(

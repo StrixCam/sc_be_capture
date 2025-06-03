@@ -1,8 +1,12 @@
+"""
+This module provides the entry point for sending combined camera feeds over TCP.
+"""
+
 from typing import Generator
 import numpy as np
 from numpy.typing import NDArray
 
-from .feed-sender import send_combined_feed
+from .feed_sender import send_combined_feed
 
 
 def run_feed_sender(combined_frames: Generator[NDArray[np.uint8], None, None]) -> None:

@@ -1,10 +1,15 @@
-from typing import Optional, Tuple
-from picamera2 import Picamera2
-import numpy as np
+"""
+This module provides the entry point for the feed sender, which sends combined frames over TCP.
+"""
+
 import time
+from typing import Optional, Tuple
+
+from picamera2.picamera2 import Picamera2
 
 from .. import config
-from .feedReciever import camera_feed
+from .feed_reciever import camera_feed
+
 
 def run_feed_recieved(return_processes: bool = False) -> Optional[Tuple[Picamera2, Picamera2]]:
     """
