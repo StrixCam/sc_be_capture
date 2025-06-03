@@ -2,7 +2,7 @@ from typing import Generator
 import numpy as np
 from numpy.typing import NDArray
 
-from .feedSender import send_combined_feed
+from .feed-sender import send_combined_feed
 
 
 def run_feed_sender(combined_frames: Generator[NDArray[np.uint8], None, None]) -> None:

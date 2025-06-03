@@ -1,7 +1,11 @@
-import numpy as np
 from typing import Generator
+
+import cv2
+import numpy as np
 from numpy.typing import NDArray
-from picamera2 import Picamera2
+from picamera2.picamera2 import Picamera2
+
+from .. import config
 
 
 def combine_camera_feeds(
@@ -20,8 +24,8 @@ def combine_camera_feeds(
     """
     while True:
         try:
-            frame0 = cam0.capture_array()
-            frame1 = cam1.capture_array()
+            frame0: NDArray[np.uint8] = cam0.capture_array(wait=True)
+            frame1: NDArray[np.uint8] = cam1.capture_array(wait=True)
 
             if frame0 is None:
                 raise RuntimeError("❌ Failed to read from Left Camera.")
@@ -29,7 +33,10 @@ def combine_camera_feeds(
                 raise RuntimeError("❌ Failed to read from Right Camera.")
 
             combined = np.hstack((frame0,frame1,)).astype(np.uint8)
-            yield combined
+            resized = cv2.resize(combined,config.FEED_OUTPUT_RESOLUTION,interpolation=cv2.INTER_AREA)
+            colored = cv2.cvtColor(resized, cv2.COLOR_RGB2BGR)
+            flipped = cv2.flip(colored, 1)
+            yield flipped
 
         except Exception as e:
             raise RuntimeError(f"❌ Error combining camera feeds: {e}") from e
