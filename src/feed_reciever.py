@@ -14,12 +14,10 @@ def camera_feed(camera_name: str, camera_id: int) -> Picamera2:
 		cam.stop()
 	cam_config: dict[str, Any] = cam.create_still_configuration(
 		main={'size': envs.CAMERA_DEFAULT_RESOLUTION},
+		controls={'FrameRate': envs.CAMERA_DEFAULT_FPS},
 		display='main',
 	)
-	cam_config['controls']['FrameDurationLimits'] = (
-		int(1 / envs.CAMERA_DEFAULT_FPS),
-		int(1/ envs.CAMERA_DEFAULT_FPS),
-	)
+	
 	cam.configure(cam_config)
 	cam.start()
 	frame: NDArray[np.uint8] = cam.capture_array(wait=True)
