@@ -7,7 +7,7 @@ from picamera2 import Picamera2
 from config import envs
 
 
-def camera_feed(camera_name: str, camera_id: int) -> Picamera2:
+def feed_recieved(camera_name: str, camera_id: int) -> Picamera2:
 	print(f'📸 Iniciando cámara {camera_id}: {camera_name}')
 	cam = Picamera2(camera_num=camera_id)
 	if cam.started:
@@ -27,8 +27,3 @@ def camera_feed(camera_name: str, camera_id: int) -> Picamera2:
 	return cam
 
 
-def run_feed_recieved() -> tuple[Picamera2, Picamera2]:
-	cap0: Picamera2 = camera_feed(camera_name=envs.CAMERA_0_NAME, camera_id=envs.CAMERA_0_INDEX)
-	cap1: Picamera2 = camera_feed(camera_name=envs.CAMERA_1_NAME, camera_id=envs.CAMERA_1_INDEX)
-
-	return cap0, cap1
