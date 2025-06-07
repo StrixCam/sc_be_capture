@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 from picamera2 import Picamera2
 
-from config import envs
+from . import envs
 
 
 def feed_recieved(camera_name: str, camera_id: int) -> Picamera2:
