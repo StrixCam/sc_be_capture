@@ -1,17 +1,7 @@
 [project]
-name = "strixcam-capture"
+name = "sc-be-capture"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = "==3.11.*"
-dependencies = [
-    "numpy>=1.26.4",
-    "opencv-stubs>=0.0.11",
-    "picamera2>=0.3.27",
-]
-
-[dependency-groups]
-dev = [
-    "opencv-stubs>=0.0.11",
-    "ruff>=0.11.12",
-]
+requires-python = ">=3.11"
+dependencies = []
