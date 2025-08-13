@@ -8,7 +8,7 @@ from picamera2 import Picamera2
 from sc_be_contracts.interfaces.capturer import ICamera
 from sc_be_contracts.models.capturer.format import CaptureFormat
 from sc_be_contracts.models.capturer.frame import Frame
-
+import logging
 
 class PiCameraAdapter(ICamera):
     def __init__(
@@ -29,8 +29,7 @@ class PiCameraAdapter(ICamera):
 
     def init_camera(self) -> None:
         self.picam = Picamera2(camera_num=self.camera_index)
-
-        self.picam.set_logging(Picamera2.ERROR)
+        self.picam.set_logging(logging.ERROR)
         self.video_config = self.picam.create_video_configuration(
             main={"size": self.resolution, "format": self.format},
             controls={"FrameRate": self.fps},
@@ -83,10 +82,6 @@ class PiCameraAdapter(ICamera):
             request = self.picam.capture_request()
             data: NDArray[uint8] = request.make_array("main")
             request.release()
-            """elapsed = time.time() - t0
-				self.logger.debug(
-						f"Camera {self.camera_index} capture {elapsed:.3f}s → {1/elapsed:.1f}fps"
-				)"""
             frame = Frame(data=data, timestamp=t0)
 
             try:

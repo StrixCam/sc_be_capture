@@ -4,4 +4,9 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["picamera2>=0.3.30", "sc-be-contracts"]
+
+[tool.uv.sources]
+sc-be-contracts = { git = "https://github.com/StrixCam/sc_be_contracts.git" }
+[tool.hatch.build.targets.wheel]
+packages = ["src/sc_be_capture"]
